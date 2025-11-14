@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPhone Conversation Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 48px;
+            text-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            margin-bottom: 50px;
+            font-size: 20px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .button-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .button-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .main-button {
+            background: white;
+            border: none;
+            border-radius: 20px;
+            padding: 60px 40px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .main-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .main-button:active {
+            transform: translateY(-2px);
+        }
+
+        .button-icon {
+            font-size: 80px;
+            line-height: 1;
+        }
+
+        .button-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            text-align: center;
+        }
+
+        .button-description {
+            font-size: 16px;
+            color: #666;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .main-button.player {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .main-button.player .button-title,
+        .main-button.player .button-description {
+            color: white;
+        }
+
+        .main-button.builder {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+
+        .main-button.builder .button-title,
+        .main-button.builder .button-description {
+            color: white;
+        }
+
+        .footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            margin-top: 30px;
+        }
+
+        .footer a {
+            color: white;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .footer a:hover {
+            border-bottom-color: white;
+        }
+
+        .features {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 40px;
+            color: white;
+        }
+
+        .features h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .features ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .features ul {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .features li {
+            padding-left: 30px;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .features li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 iPhone Conversation Simulator</h1>
+        <p class="subtitle">Create and record realistic iPhone text message conversations</p>
+
+        <div class="button-container">
+            <a href="chat_player_rec.html" class="main-button player">
+                <div class="button-icon">▶️</div>
+                <div class="button-title">Player & Recorder</div>
+                <div class="button-description">
+                    Play conversation scripts and record them as video
+                </div>
+            </a>
+
+            <a href="chat_builder.html" class="main-button builder">
+                <div class="button-icon">🛠️</div>
+                <div class="button-title">Conversation Builder</div>
+                <div class="button-description">
+                    Create conversation scripts with a visual editor
+                </div>
+            </a>
+        </div>
+
+        <div class="features">
+            <h2>Features</h2>
+            <ul>
+                <li>Realistic iPhone message interface</li>
+                <li>Customizable typing speeds</li>
+                <li>Support for text and images</li>
+                <li>Screen recording capability</li>
+                <li>Visual conversation builder</li>
+                <li>Import/export JSON scripts</li>
+                <li>Simulate typing, pausing, and deleting</li>
+                <li>Fully customizable participants</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>Built with 🤖 for creating engaging message conversations</p>
+        </div>
+    </div>
+</body>
+</html>
