@@ -1,0 +1,120 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "participants": {
+      "A": {
+        "name": "Alex"
+      },
+      "B": {
+        "name": "Ben"
+      }
+    }
+  },
+  "config": {
+    "defaultTypingSpeed": 80,
+    "defaultDeleteSpeed": 50,
+    "defaultMessageDelay": 1500
+  },
+  "conversation": [
+    {
+      "//": "--- DEMO: Typing very slowly (1000ms/char) ---",
+      "type": "type",
+      "actor": "A",
+      "text": "Hey, I was wonder",
+      "typingSpeed": 1000
+    },
+    {
+      "//": "--- DEMO: Pausing during typing ---",
+      "type": "pause",
+      "actor": "A",
+      "duration": 2000
+    },
+    {
+      "//": "--- DEMO: Deleting very slowly (1000ms/char) ---",
+      "type": "delete",
+      "actor": "A",
+      "charCount": 7,
+      "deleteSpeed": 1000
+    },
+    {
+      "//": "--- DEMO: Typing at the default speed (80ms/char) ---",
+      "type": "type",
+      "actor": "A",
+      "text": "thinking... what are you up to?"
+    },
+    {
+      "//": "--- DEMO: Deleting at the default speed (50ms/char) ---",
+      "type": "delete",
+      "actor": "A",
+      "charCount": 29
+    },
+    {
+      "//": "--- DEMO: A combined type and send event for efficiency ---",
+      "type": "type_and_send_message",
+      "actor": "A",
+      "message": {
+        "contentType": "text",
+        "content": "Are you free tonight?"
+      }
+    },
+    {
+      "//": "--- DEMO: B responding after a long, specified delay (5 seconds) ---",
+      "type": "receive_message",
+      "actor": "B",
+      "delay": 5000,
+      "message": {
+        "contentType": "text",
+        "content": "Totally! What's the plan?"
+      }
+    },
+    {
+      "//": "--- DEMO: A sending a text message followed immediately by an image ---",
+      "type": "type_and_send_message",
+      "actor": "A",
+      "message": {
+        "contentType": "text",
+        "content": "I was thinking of trying that new burger place. Saw this online:"
+      }
+    },
+    {
+      "//": "--- DEMO: A sending an image with a caption ---",
+      "type": "send_message",
+      "actor": "A",
+      "message": {
+        "contentType": "image",
+        "url": "https://via.placeholder.com/400x300.png/007AFF/FFFFFF?text=Awesome+Burger",
+        "caption": "Looks good, right?"
+      }
+    },
+    {
+      "//": "--- DEMO: B responding at the default delay (1500ms) ---",
+      "//": "(Notice there is no 'delay' property here, so it uses the config default)",
+      "type": "receive_message",
+      "actor": "B",
+      "message": {
+        "contentType": "text",
+        "content": "OMG YES. I'm so hungry now."
+      }
+    },
+    {
+      "//": "--- DEMO: B sending an image (reaction gif style) ---",
+      "type": "receive_message",
+      "actor": "B",
+      "delay": 2000,
+      "message": {
+        "contentType": "image",
+        "url": "https://via.placeholder.com/250x200.png/E5E5EA/000000?text=Let's+Go!"
+      }
+    },
+    {
+      "//": "--- DEMO: Final wrap-up message from A ---",
+      "type": "type_and_send_message",
+      "actor": "A",
+      "delay": 1000,
+      "message": {
+        "contentType": "text",
+        "content": "Perfect! See you there at 7?"
+      }
+    }
+  ]
+}

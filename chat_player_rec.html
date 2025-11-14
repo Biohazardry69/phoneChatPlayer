@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPhone Message Playback</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .iphone-container { width: 375px; height: 812px; background: #000; border-radius: 40px; padding: 10px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .iphone-screen { width: 100%; height: 100%; background: #fff; border-radius: 30px; overflow: hidden; display: flex; flex-direction: column; }
+        .status-bar { background: #f8f8f8; padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; border-bottom: 1px solid #e0e0e0; }
+        .status-left { display: flex; align-items: center; gap: 5px; }
+        .carrier { font-weight: 500; }
+        .signal-bars { display: flex; gap: 2px; align-items: flex-end; }
+        .signal-bar { width: 3px; background: #333; border-radius: 1px; }
+        .signal-bar:nth-child(1) { height: 4px; } .signal-bar:nth-child(2) { height: 6px; } .signal-bar:nth-child(3) { height: 8px; } .signal-bar:nth-child(4) { height: 10px; }
+        .status-right { display: flex; align-items: center; gap: 5px; }
+        .battery { width: 25px; height: 12px; border: 1px solid #333; border-radius: 2px; position: relative; padding: 1px; }
+        .battery::after { content: ''; position: absolute; right: -3px; top: 3px; width: 2px; height: 6px; background: #333; border-radius: 0 1px 1px 0; }
+        .battery-fill { height: 100%; background: #333; border-radius: 1px; width: 80%; }
+        .nav-header { background: #f8f8f8; padding: 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e0e0e0; }
+        .nav-left, .nav-right { color: #007AFF; text-decoration: none; font-size: 17px; display: flex; align-items: center; gap: 5px; }
+        .nav-left::before { content: '‹'; font-size: 28px; line-height: 0.7; }
+        .nav-center { font-weight: 600; font-size: 17px; }
+        .chat-area { flex: 1; background: #fff; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; }
+        .message { max-width: 70%; margin-bottom: 10px; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .message.sent { align-self: flex-end; }
+        .message.received { align-self: flex-start; }
+        .message-bubble { padding: 8px 12px; border-radius: 18px; word-wrap: break-word; position: relative; line-height: 1.4; font-size: 16px; }
+        .message.sent .message-bubble { background: #007AFF; color: white; border-bottom-right-radius: 4px; }
+        .message.received .message-bubble { background: #E5E5EA; color: black; border-bottom-left-radius: 4px; }
+        .image-bubble { padding: 0; overflow: hidden; max-width: 210px; }
+        .image-bubble img { width: 100%; display: block; }
+        .caption-text { padding: 8px 12px; }
+        .input-area { background: #f8f8f8; border-top: 1px solid #e0e0e0; padding: 8px; display: flex; gap: 8px; align-items: center; }
+        .input-field { flex: 1; background: white; border: 1px solid #d0d0d0; border-radius: 20px; padding: 8px 15px; font-size: 16px; outline: none; min-height: 36px; display: flex; align-items: center; }
+        .send-button { width: 32px; height: 32px; background: #007AFF; border: none; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .keyboard { background: #d1d3d9; padding: 6px 3px 20px; }
+        .keyboard-row { display: flex; gap: 6px; margin-bottom: 6px; justify-content: center; }
+        .key { background: #fff; border: none; border-radius: 5px; padding: 11px 0; font-size: 22px; color: #000; box-shadow: 0 1px 0 rgba(0,0,0,0.35); cursor: pointer; user-select: none; transition: all 0.1s; min-width: 31px; text-align: center; }
+        .key:active, .key.active { background: #838383; color: white; transform: scale(0.95); }
+        .key.space { flex: 1; max-width: 180px; }
+        .key.special { background: #aeb2b8; color: #000; font-size: 16px; padding: 11px 10px; }
+        .key.special:active, .key.special.active { background: #fff; color: #000; }
+        .key.return { min-width: 76px; }
+        .controls { position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; z-index: 1000; flex-direction: column; }
+        .control-row { display: flex; gap: 10px; }
+        .control-btn { padding: 10px 20px; background: white; border: none; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; font-size: 14px; font-weight: 600; }
+        .control-btn:hover { background: #f0f0f0; }
+        .control-btn.recording { background: #f56565; color: white; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        .control-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        #fileInput { display: none; }
+        
+        .recording-info {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+            line-height: 1.4;
+        }
+        
+        .recording-info.active {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="iphone-container" id="phoneContainer">
+        <div class="iphone-screen">
+            <div class="status-bar">
+                <div class="status-left">
+                    <div class="signal-bars"><div class="signal-bar"></div><div class="signal-bar"></div><div class="signal-bar"></div><div class="signal-bar"></div></div>
+                    <span class="carrier">AT&T</span>
+                </div>
+                <div class="status-right">
+                    <span>100%</span>
+                    <div class="battery"><div class="battery-fill"></div></div>
+                </div>
+            </div>
+            <div class="nav-header">
+                <a href="#" class="nav-left">Back</a>
+                <div class="nav-center" id="recipientName">Contact</div>
+                <a href="#" class="nav-right">Details</a>
+            </div>
+            <div class="chat-area" id="chatArea"></div>
+            <div class="input-area">
+                <div class="input-field" id="inputField"></div>
+                <button class="send-button">➤</button>
+            </div>
+            <div class="keyboard">
+                <div class="keyboard-row">
+                    <button class="key" data-key="q">q</button><button class="key" data-key="w">w</button><button class="key" data-key="e">e</button><button class="key" data-key="r">r</button><button class="key" data-key="t">t</button><button class="key" data-key="y">y</button><button class="key" data-key="u">u</button><button class="key" data-key="i">i</button><button class="key" data-key="o">o</button><button class="key" data-key="p">p</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="key" data-key="a">a</button><button class="key" data-key="s">s</button><button class="key" data-key="d">d</button><button class="key" data-key="f">f</button><button class="key" data-key="g">g</button><button class="key" data-key="h">h</button><button class="key" data-key="j">j</button><button class="key" data-key="k">k</button><button class="key" data-key="l">l</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="key special" data-key="shift">⇧</button><button class="key" data-key="z">z</button><button class="key" data-key="x">x</button><button class="key" data-key="c">c</button><button class="key" data-key="v">v</button><button class="key" data-key="b">b</button><button class="key" data-key="n">n</button><button class="key" data-key="m">m</button><button class="key special" data-key="backspace">⌫</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="key special" data-key="123">123</button><button class="key special" data-key="emoji">😊</button><button class="key space" data-key=" ">space</button><button class="key special return" data-key="return">return</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="control-row">
+            <button class="control-btn" id="startBtn" onclick="startPlayback()">Start</button>
+            <button class="control-btn" onclick="resetPlayback()">Reset</button>
+            <input type="file" id="fileInput" accept=".json">
+            <button class="control-btn" onclick="document.getElementById('fileInput').click()">Load JSON</button>
+        </div>
+        <div class="control-row">
+            <button class="control-btn" id="recordBtn" onclick="toggleRecording()">🔴 Start Recording</button>
+            <a href="chat_builder.html">
+                <button class="control-btn">📱 JSON Builder</button>
+            </a>
+        </div>
+        <div class="recording-info" id="recordingInfo">
+            Click "Start Recording", then select this browser tab to record
+        </div>
+    </div>
+
+    <script>
+        let conversationData = null;
+        let currentEventIndex = 0;
+        let currentText = '';
+        let isPlaying = false;
+        
+        // Recording variables
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let isRecording = false;
+        let displayStream = null;
+
+        const sampleData = {
+            "metadata": { "version": "1.0", "participants": { "A": { "name": "Alex" }, "B": { "name": "Ben" } } },
+            "config": { "defaultTypingSpeed": 80, "defaultDeleteSpeed": 40, "defaultMessageDelay": 1200 },
+            "conversation": [
+                { "type": "type_and_send_message", "actor": "A", "message": { "contentType": "text", "content": "Hey, what are you up to tonight?" } },
+                { "type": "receive_message", "actor": "B", "delay": 1500, "message": { "contentType": "text", "content": "Not much, was about to watch a movie. You?" } },
+                { "type": "type", "actor": "A", "text": "Cool! Want to hang out?" },
+                { "type": "pause", "actor": "A", "duration": 500 },
+                { "type": "delete", "actor": "A", "charCount": 17 },
+                { "type": "type", "actor": "A", "text": "Check this out." },
+                { "type": "send_message", "actor": "A", "message": {"contentType": "text", "content": "Cool! Check this out."} },
+                { "type": "send_message", "actor": "A", "message": { "contentType": "image", "url": "exampleImg.png", "caption": "There is a magic show. Wanna go?" } },
+                { "type": "receive_message", "actor": "B", "message": { "contentType": "text", "content": "Whoa, that looks awesome! I'm in!" } }
+            ]
+        };
+
+        conversationData = sampleData;
+        updateRecipientName();
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        conversationData = JSON.parse(e.target.result);
+                        updateRecipientName();
+                        resetPlayback();
+                    } catch (error) { alert('Invalid JSON file'); }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function updateRecipientName() {
+            if (conversationData?.metadata?.participants?.B) {
+                document.getElementById('recipientName').textContent = conversationData.metadata.participants.B.name || 'Contact';
+            }
+        }
+
+        function highlightKey(char) {
+            const key = document.querySelector(`.key[data-key="${char.toLowerCase()}"]`);
+            if (key) {
+                key.classList.add('active');
+                setTimeout(() => key.classList.remove('active'), 100);
+            }
+        }
+
+        async function typeText(text, speed) {
+            for (let i = 0; i < text.length; i++) {
+                if (!isPlaying) return;
+                currentText += text[i];
+                document.getElementById('inputField').textContent = currentText;
+                highlightKey(text[i]);
+                await sleep(speed);
+            }
+        }
+
+        async function deleteText(charCount, speed) {
+            for (let i = 0; i < charCount; i++) {
+                if (!isPlaying) return;
+                currentText = currentText.slice(0, -1);
+                document.getElementById('inputField').textContent = currentText;
+                highlightKey('backspace');
+                await sleep(speed);
+            }
+        }
+
+        function createMessageElement(message, senderType) {
+            const chatArea = document.getElementById('chatArea');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${senderType}`;
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+
+            if (message.contentType === 'text') {
+                bubbleDiv.textContent = message.content;
+            } else if (message.contentType === 'image') {
+                bubbleDiv.classList.add('image-bubble');
+                const img = document.createElement('img');
+                img.src = message.url;
+                img.alt = 'Image';
+                img.onload = () => { chatArea.scrollTop = chatArea.scrollHeight; };
+                bubbleDiv.appendChild(img);
+                if (message.caption) {
+                    const captionDiv = document.createElement('div');
+                    captionDiv.className = 'caption-text';
+                    captionDiv.textContent = message.caption;
+                    bubbleDiv.appendChild(captionDiv);
+                }
+            }
+            
+            messageDiv.appendChild(bubbleDiv);
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function sendMessage(message) {
+            createMessageElement(message, 'sent');
+            currentText = '';
+            document.getElementById('inputField').textContent = '';
+        }
+
+        function receiveMessage(message) {
+            createMessageElement(message, 'received');
+        }
+
+        async function processEvent(event) {
+            const config = conversationData.config;
+            
+            switch(event.type) {
+                case 'type_and_send_message':
+                    if (event.delay) await sleep(event.delay);
+                    if (event.message.contentType === 'text') {
+                        const typeSpeed = event.typingSpeed || config.defaultTypingSpeed;
+                        await typeText(event.message.content, typeSpeed);
+                    }
+                    sendMessage(event.message);
+                    await sleep(300);
+                    break;
+                case 'type':
+                    await typeText(event.text, event.typingSpeed || config.defaultTypingSpeed);
+                    break;
+                case 'pause':
+                    await sleep(event.duration);
+                    break;
+                case 'delete':
+                    await deleteText(event.charCount, event.deleteSpeed || config.defaultDeleteSpeed);
+                    break;
+                case 'send_message':
+                    sendMessage(event.message);
+                    await sleep(300);
+                    break;
+                case 'receive_message':
+                    const delay = event.delay ?? config.defaultMessageDelay ?? 1000;
+                    await sleep(delay);
+                    receiveMessage(event.message);
+                    break;
+            }
+        }
+
+        async function startPlayback() {
+            if (!conversationData || isPlaying) return;
+            isPlaying = true;
+            document.getElementById('startBtn').disabled = true;
+            
+            const events = conversationData.conversation;
+            while (currentEventIndex < events.length && isPlaying) {
+                await processEvent(events[currentEventIndex]);
+                currentEventIndex++;
+            }
+            
+            isPlaying = false;
+            document.getElementById('startBtn').disabled = false;
+            
+            // Auto-stop recording when playback finishes
+            if (isRecording) {
+                setTimeout(() => {
+                    stopRecording();
+                }, 500);
+            }
+        }
+
+        function resetPlayback() {
+            isPlaying = false;
+            currentEventIndex = 0;
+            currentText = '';
+            document.getElementById('inputField').textContent = '';
+            document.getElementById('chatArea').innerHTML = '';
+            document.getElementById('startBtn').disabled = false;
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // ============== RECORDING FUNCTIONS ==============
+
+        async function toggleRecording() {
+            if (isRecording) {
+                stopRecording();
+            } else {
+                await startRecording();
+            }
+        }
+
+        async function startRecording() {
+            try {
+                // Request screen capture
+                displayStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: {
+                        cursor: "never",
+                        displaySurface: "browser"
+                    },
+                    audio: false,
+                    preferCurrentTab: true
+                });
+                
+                const videoTrack = displayStream.getVideoTracks()[0];
+                
+                // Handle when user stops sharing via browser UI
+                videoTrack.onended = () => {
+                    stopRecording();
+                };
+                
+                recordedChunks = [];
+                
+                const options = {
+                    mimeType: 'video/webm;codecs=vp9',
+                    videoBitsPerSecond: 5000000
+                };
+                
+                // Fallback for browsers that don't support vp9
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                    options.mimeType = 'video/webm;codecs=vp8';
+                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                        options.mimeType = 'video/webm';
+                    }
+                }
+                
+                mediaRecorder = new MediaRecorder(displayStream, options);
+                
+                mediaRecorder.ondataavailable = function(event) {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = function() {
+                    downloadRecording();
+                };
+                
+                mediaRecorder.start(100);
+                
+                isRecording = true;
+                document.getElementById('recordBtn').classList.add('recording');
+                document.getElementById('recordBtn').textContent = '⏹️ Stop Recording';
+                document.getElementById('recordingInfo').textContent = '🔴 Recording in progress...';
+                document.getElementById('recordingInfo').classList.add('active');
+                
+                console.log('Recording started');
+                
+            } catch (error) {
+                console.error('Error starting recording:', error);
+                
+                if (error.name === 'NotAllowedError') {
+                    alert('Screen recording permission was denied. Please allow screen sharing to record.');
+                } else {
+                    alert('Failed to start recording: ' + error.message + '\n\nMake sure you select the browser tab when prompted.');
+                }
+                
+                isRecording = false;
+                document.getElementById('recordBtn').classList.remove('recording');
+                document.getElementById('recordBtn').textContent = '🔴 Start Recording';
+            }
+        }
+
+        function stopRecording() {
+            isRecording = false;
+            
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            
+            if (displayStream) {
+                displayStream.getTracks().forEach(track => track.stop());
+                displayStream = null;
+            }
+            
+            document.getElementById('recordBtn').classList.remove('recording');
+            document.getElementById('recordBtn').textContent = '🔴 Start Recording';
+            document.getElementById('recordingInfo').textContent = 'Click "Start Recording", then select this browser tab to record';
+            document.getElementById('recordingInfo').classList.remove('active');
+            
+            console.log('Recording stopped');
+        }
+
+        function downloadRecording() {
+            if (recordedChunks.length === 0) {
+                alert('No recording data available');
+                return;
+            }
+            
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `conversation_${Date.now()}.webm`;
+            document.body.appendChild(a);
+            a.click();
+            
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+            
+            recordedChunks = [];
+            console.log('Recording downloaded');
+        }
+    </script>
+</body>
+</html>

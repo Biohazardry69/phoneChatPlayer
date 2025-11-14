@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversation JSON Builder</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: white; text-align: center; margin-bottom: 30px; font-size: 32px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .panel { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { color: #333; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid #e0e0e0; }
+        .form-row { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+        .form-group { flex: 1; min-width: 200px; }
+        label { display: block; margin-bottom: 4px; color: #666; font-size: 14px; font-weight: 500; }
+        input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; transition: border-color 0.2s; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; }
+        textarea { resize: vertical; min-height: 60px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5a67d8; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4); }
+        .btn-secondary { background: #48bb78; color: white; }
+        .btn-secondary:hover { background: #38a169; }
+        .btn-danger { background: #f56565; color: white; }
+        .btn-danger:hover { background: #e53e3e; }
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+        .event-list { max-height: 500px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px; }
+        .event-item { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 12px; margin-bottom: 12px; position: relative; }
+        .event-item:last-child { margin-bottom: 0; }
+        .event-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .event-type { font-weight: 600; color: #667eea; }
+        .event-actor { background: #007AFF; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+        .event-actor.actor-b { background: #6c757d; }
+        .event-details { color: #666; font-size: 13px; line-height: 1.5; }
+        .event-actions { display: flex; gap: 8px; margin-top: 8px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; border-radius: 12px; padding: 24px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { margin-bottom: 20px; }
+        .modal-title { font-size: 20px; font-weight: 600; color: #333; }
+        .checkbox-group { display: flex; align-items: center; gap: 8px; margin: 12px 0; }
+        .checkbox-group input[type="checkbox"] { width: auto; }
+        .optional-field { display: none; }
+        .optional-field.active { display: block; }
+        .download-section { text-align: center; padding: 20px; display: flex; justify-content: center; gap: 16px; }
+        .json-preview { background: #f4f4f4; border: 1px solid #ddd; border-radius: 6px; padding: 16px; font-family: 'Courier New', monospace; font-size: 12px; white-space: pre-wrap; max-height: 300px; overflow-y: auto; margin-bottom: 16px; }
+        .move-buttons { display: flex; flex-direction: column; gap: 4px; }
+        .move-btn { padding: 4px 8px; font-size: 12px; background: #e0e0e0; border: none; border-radius: 4px; cursor: pointer; }
+        .move-btn:hover { background: #d0d0d0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Conversation JSON Builder</h1>
+        <!-- Settings Panel -->
+        <div class="panel">
+            <h2>Settings</h2>
+            <h3 style="margin-top: 20px; margin-bottom: 12px; font-size: 18px;">Participants</h3>
+            <div class="form-row">
+                <div class="form-group"><label>Person A Name</label><input type="text" id="nameA" value="Alex" placeholder="Enter name for Person A"></div>
+                <div class="form-group"><label>Person B Name</label><input type="text" id="nameB" value="Ben" placeholder="Enter name for Person B"></div>
+            </div>
+            <h3 style="margin-top: 20px; margin-bottom: 12px; font-size: 18px;">Default Speeds & Delays</h3>
+            <div class="form-row">
+                <div class="form-group"><label>Default Typing Speed (ms/char)</label><input type="number" id="defaultTypingSpeed" value="80" min="1"></div>
+                <div class="form-group"><label>Default Delete Speed (ms/char)</label><input type="number" id="defaultDeleteSpeed" value="50" min="1"></div>
+                <div class="form-group"><label>Default Message Delay (ms)</label><input type="number" id="defaultMessageDelay" value="1500" min="0"></div>
+            </div>
+        </div>
+
+        <!-- Conversation Builder Panel -->
+        <div class="panel">
+            <h2>Conversation Builder</h2>
+            <div class="btn-group">
+                <!-- *** FIX: Changed onclick to call addNewEvent *** -->
+                <button class="btn btn-primary" onclick="addNewEvent('type_and_send')">➕ Type & Send (A)</button>
+                <button class="btn btn-primary" onclick="addNewEvent('type')">⌨️ Type (A)</button>
+                <button class="btn btn-primary" onclick="addNewEvent('pause')">⏸️ Pause (A)</button>
+                <button class="btn btn-primary" onclick="addNewEvent('delete')">⌫ Delete (A)</button>
+                <button class="btn btn-primary" onclick="addNewEvent('send')">📤 Send (A)</button>
+                <button class="btn btn-secondary" onclick="addNewEvent('receive')">📥 Receive (B)</button>
+            </div>
+            <h3 style="margin-top: 20px; margin-bottom: 12px;">Conversation Events</h3>
+            <div class="event-list" id="eventList">
+                <p style="color: #999; text-align: center;">No events added yet. Click buttons above to add events.</p>
+            </div>
+        </div>
+
+        <!-- Export Panel -->
+        <div class="panel">
+            <h2>Export / Import</h2>
+            <div class="json-preview" id="jsonPreview">Your JSON will appear here...</div>
+            <div class="download-section">
+                <input type="file" id="jsonLoader" accept=".json" style="display: none;">
+                <button class="btn btn-secondary" onclick="document.getElementById('jsonLoader').click()">📂 Load JSON</button>
+                <button class="btn btn-primary" onclick="downloadJSON()">💾 Download JSON</button>
+            </div>
+            <div class="download-section">
+                <a href="chat_player_rec.html"><button class="btn btn-secondary">Downloaded? Head to the player 📲 and try it out! </button></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Modal -->
+    <div class="modal" id="eventModal">
+        <div class="modal-content">
+            <div class="modal-header"><h3 class="modal-title" id="modalTitle">Add/Edit Event</h3></div>
+            <div id="modalBody"></div>
+            <div class="btn-group" style="justify-content: flex-end; margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="saveEvent()">Save</button>
+                <button class="btn btn-danger" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let events = [];
+        let currentEventType = '';
+        let editingIndex = -1;
+
+        document.getElementById('jsonLoader').addEventListener('change', handleFileLoad);
+
+        function handleFileLoad(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    parseAndLoadData(data);
+                } catch (error) {
+                    alert('Failed to parse file. Please ensure it is a valid JSON file.');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = null;
+        }
+
+        function parseAndLoadData(data) {
+            if (!data.metadata || !data.config || !data.conversation) {
+                alert('The loaded JSON file has an invalid structure.');
+                return;
+            }
+            document.getElementById('nameA').value = data.metadata.participants?.A?.name || 'Person A';
+            document.getElementById('nameB').value = data.metadata.participants?.B?.name || 'Person B';
+            document.getElementById('defaultTypingSpeed').value = data.config.defaultTypingSpeed || 80;
+            document.getElementById('defaultDeleteSpeed').value = data.config.defaultDeleteSpeed || 50;
+            document.getElementById('defaultMessageDelay').value = data.config.defaultMessageDelay || 1500;
+            events = Array.isArray(data.conversation) ? data.conversation : [];
+            updatePreview();
+            alert('JSON file loaded successfully!');
+        }
+
+        function updatePreview() {
+            const conversation = {
+                metadata: {
+                    version: "1.0",
+                    participants: {
+                        A: { name: document.getElementById('nameA').value || 'Person A' },
+                        B: { name: document.getElementById('nameB').value || 'Person B' }
+                    }
+                },
+                config: {
+                    defaultTypingSpeed: parseInt(document.getElementById('defaultTypingSpeed').value) || 80,
+                    defaultDeleteSpeed: parseInt(document.getElementById('defaultDeleteSpeed').value) || 50,
+                    defaultMessageDelay: parseInt(document.getElementById('defaultMessageDelay').value) || 1500
+                },
+                conversation: events
+            };
+            document.getElementById('jsonPreview').textContent = JSON.stringify(conversation, null, 2);
+            updateEventList();
+        }
+
+        function updateEventList() {
+            const listEl = document.getElementById('eventList');
+            if (events.length === 0) {
+                listEl.innerHTML = '<p style="color: #999; text-align: center;">No events added yet. Click buttons above to add events.</p>';
+                return;
+            }
+            listEl.innerHTML = events.map((event, index) => {
+                let details = '';
+                let actorClass = event.actor === 'B' ? 'actor-b' : '';
+                switch(event.type) {
+                    case 'type_and_send_message':
+                        details = `Message: "${event.message.content || 'Image'}"`; break;
+                    case 'type':
+                        details = `Text: "${event.text}"`;
+                        if (event.typingSpeed) details += ` | Speed: ${event.typingSpeed}ms/char`; break;
+                    case 'pause':
+                        details = `Duration: ${event.duration}ms`; break;
+                    case 'delete':
+                        details = `Characters: ${event.charCount}`;
+                        if (event.deleteSpeed) details += ` | Speed: ${event.deleteSpeed}ms/char`; break;
+                    case 'send_message':
+                        details = event.message.contentType === 'text' ? `Text: "${event.message.content}"` : `Image: ${event.message.caption || 'No caption'}`; break;
+                    case 'receive_message':
+                        details = event.message.contentType === 'text' ? `Text: "${event.message.content}"` : `Image: ${event.message.caption || 'No caption'}`;
+                        if (event.delay) details += ` | Delay: ${event.delay}ms`; break;
+                }
+                return `
+                    <div class="event-item">
+                        <div class="event-header">
+                            <span class="event-type">${event.type}</span>
+                            <span class="event-actor ${actorClass}">Person ${event.actor}</span>
+                        </div>
+                        <div class="event-details">${details}</div>
+                        <div class="event-actions">
+                            <button class="btn btn-primary" style="font-size: 12px; padding: 6px 12px;" onclick="editEvent(${index})">Edit</button>
+                            <button class="btn btn-danger" style="font-size: 12px; padding: 6px 12px;" onclick="deleteEvent(${index})">Delete</button>
+                            <div class="move-buttons">
+                                ${index > 0 ? `<button class="move-btn" onclick="moveEvent(${index}, -1)">↑</button>` : ''}
+                                ${index < events.length - 1 ? `<button class="move-btn" onclick="moveEvent(${index}, 1)">↓</button>` : ''}
+                            </div>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        // --- FIX: New function to handle adding a new event ---
+        function addNewEvent(type) {
+            editingIndex = -1; // Explicitly set for a new event
+            openEventModal(type);
+        }
+
+        function openEventModal(type) {
+            // *** FIX: Removed `editingIndex = -1;` from here ***
+            currentEventType = type;
+            const modal = document.getElementById('eventModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            let title = '', content = '';
+            
+            switch(type) {
+                case 'type_and_send':
+                    title = 'Type and Send Message (Person A)';
+                    content = `<div class="form-group"><label>Message Type</label><select id="messageType" onchange="toggleImageFields('messageType', 'imageFields')"><option value="text">Text Message</option><option value="image">Image</option></select></div><div class="form-group" id="textContent"><label>Message Text</label><textarea id="messageContent" placeholder="Enter message text"></textarea></div><div id="imageFields" style="display: none;"><div class="form-group"><label>Image URL</label><input type="text" id="imageUrl" placeholder="https://example.com/image.jpg"></div><div class="form-group"><label>Caption (Optional)</label><input type="text" id="imageCaption" placeholder="Optional caption"></div></div><div class="checkbox-group"><input type="checkbox" id="customDelay" onchange="toggleOptional('customDelay', 'delayField')"><label for="customDelay">Custom delay before typing</label></div><div class="optional-field" id="delayField"><div class="form-group"><label>Delay (ms)</label><input type="number" id="delay" value="1000" min="0"></div></div><div class="checkbox-group"><input type="checkbox" id="customTypingSpeed" onchange="toggleOptional('customTypingSpeed', 'typingSpeedField')"><label for="customTypingSpeed">Custom typing speed</label></div><div class="optional-field" id="typingSpeedField"><div class="form-group"><label>Typing Speed (ms/char)</label><input type="number" id="typingSpeed" value="80" min="1"></div></div>`;
+                    break;
+                case 'type':
+                    title = 'Type Text (Person A)';
+                    content = `<div class="form-group"><label>Text to Type</label><textarea id="text" placeholder="Enter text to type"></textarea></div><div class="checkbox-group"><input type="checkbox" id="customTypingSpeed" onchange="toggleOptional('customTypingSpeed', 'typingSpeedField')"><label for="customTypingSpeed">Custom typing speed</label></div><div class="optional-field" id="typingSpeedField"><div class="form-group"><label>Typing Speed (ms/char)</label><input type="number" id="typingSpeed" value="80" min="1"></div></div>`;
+                    break;
+                case 'pause':
+                    title = 'Add Pause (Person A)';
+                    content = `<div class="form-group"><label>Pause Duration (ms)</label><input type="number" id="duration" value="1000" min="0"></div>`;
+                    break;
+                case 'delete':
+                    title = 'Delete Characters (Person A)';
+                    content = `<div class="form-group"><label>Number of Characters to Delete</label><input type="number" id="charCount" value="1" min="1"></div><div class="checkbox-group"><input type="checkbox" id="customDeleteSpeed" onchange="toggleOptional('customDeleteSpeed', 'deleteSpeedField')"><label for="customDeleteSpeed">Custom delete speed</label></div><div class="optional-field" id="deleteSpeedField"><div class="form-group"><label>Delete Speed (ms/char)</label><input type="number" id="deleteSpeed" value="50" min="1"></div></div>`;
+                    break;
+                case 'send':
+                    title = 'Send Message (Person A)';
+                    content = `<div class="form-group"><label>Message Type</label><select id="messageType" onchange="toggleImageFields('messageType', 'imageFields')"><option value="text">Text Message</option><option value="image">Image</option></select></div><div class="form-group" id="textContent"><label>Message Text</label><textarea id="messageContent" placeholder="Enter message text"></textarea></div><div id="imageFields" style="display: none;"><div class="form-group"><label>Image URL</label><input type="text" id="imageUrl" placeholder="https://example.com/image.jpg"></div><div class="form-group"><label>Caption (Optional)</label><input type="text" id="imageCaption" placeholder="Optional caption"></div></div>`;
+                    break;
+                case 'receive':
+                    title = 'Receive Message (Person B)';
+                    content = `<div class="form-group"><label>Message Type</label><select id="messageType" onchange="toggleImageFields('messageType', 'imageFields')"><option value="text">Text Message</option><option value="image">Image</option></select></div><div class="form-group" id="textContent"><label>Message Text</label><textarea id="messageContent" placeholder="Enter message text"></textarea></div><div id="imageFields" style="display: none;"><div class="form-group"><label>Image URL</label><input type="text" id="imageUrl" placeholder="https://example.com/image.jpg"></div><div class="form-group"><label>Caption (Optional)</label><input type="text" id="imageCaption" placeholder="Optional caption"></div></div><div class="checkbox-group"><input type="checkbox" id="customDelay" onchange="toggleOptional('customDelay', 'delayField')"><label for="customDelay">Custom delay (otherwise uses default)</label></div><div class="optional-field" id="delayField"><div class="form-group"><label>Delay (ms)</label><input type="number" id="delay" value="1500" min="0"></div></div>`;
+                    break;
+            }
+            modalTitle.textContent = title;
+            modalBody.innerHTML = content;
+            modal.classList.add('active');
+        }
+
+        function editEvent(index) {
+            const event = events[index];
+            editingIndex = index;
+            let modalType = event.type;
+            if (modalType === 'type_and_send_message') modalType = 'type_and_send';
+            else if (modalType === 'send_message') modalType = 'send';
+            else if (modalType === 'receive_message') modalType = 'receive';
+            openEventModal(modalType);
+            setTimeout(() => {
+                switch(event.type) {
+                    case 'type_and_send_message':
+                        if (event.message.contentType === 'image') {
+                            document.getElementById('messageType').value = 'image';
+                            toggleImageFields('messageType', 'imageFields');
+                            document.getElementById('imageUrl').value = event.message.url || '';
+                            document.getElementById('imageCaption').value = event.message.caption || '';
+                        } else {
+                            document.getElementById('messageContent').value = event.message.content;
+                        }
+                        if (event.delay !== undefined) {
+                            document.getElementById('customDelay').checked = true;
+                            toggleOptional('customDelay', 'delayField');
+                            document.getElementById('delay').value = event.delay;
+                        }
+                        if (event.typingSpeed) {
+                            document.getElementById('customTypingSpeed').checked = true;
+                            toggleOptional('customTypingSpeed', 'typingSpeedField');
+                            document.getElementById('typingSpeed').value = event.typingSpeed;
+                        }
+                        break;
+                    case 'type':
+                        document.getElementById('text').value = event.text;
+                        if (event.typingSpeed) {
+                            document.getElementById('customTypingSpeed').checked = true;
+                            toggleOptional('customTypingSpeed', 'typingSpeedField');
+                            document.getElementById('typingSpeed').value = event.typingSpeed;
+                        }
+                        break;
+                    case 'pause':
+                        document.getElementById('duration').value = event.duration;
+                        break;
+                    case 'delete':
+                        document.getElementById('charCount').value = event.charCount;
+                        if (event.deleteSpeed) {
+                            document.getElementById('customDeleteSpeed').checked = true;
+                            toggleOptional('customDeleteSpeed', 'deleteSpeedField');
+                            document.getElementById('deleteSpeed').value = event.deleteSpeed;
+                        }
+                        break;
+                    case 'send_message':
+                    case 'receive_message':
+                        if (event.message.contentType === 'image') {
+                            document.getElementById('messageType').value = 'image';
+                            toggleImageFields('messageType', 'imageFields');
+                            document.getElementById('imageUrl').value = event.message.url || '';
+                            document.getElementById('imageCaption').value = event.message.caption || '';
+                        } else {
+                            document.getElementById('messageContent').value = event.message.content;
+                        }
+                        if (event.type === 'receive_message' && event.delay !== undefined) {
+                            document.getElementById('customDelay').checked = true;
+                            toggleOptional('customDelay', 'delayField');
+                            document.getElementById('delay').value = event.delay;
+                        }
+                        break;
+                }
+            }, 100);
+        }
+
+        function toggleOptional(checkboxId, fieldId) {
+            const checkbox = document.getElementById(checkboxId);
+            const field = document.getElementById(fieldId);
+            field.classList.toggle('active', checkbox.checked);
+        }
+
+        function toggleImageFields(selectId, imageFieldsId) {
+            const select = document.getElementById(selectId);
+            const imageFields = document.getElementById(imageFieldsId);
+            const textContent = document.getElementById('textContent');
+            const isImage = select.value === 'image';
+            imageFields.style.display = isImage ? 'block' : 'none';
+            if (textContent) textContent.style.display = isImage ? 'none' : 'block';
+        }
+
+        function saveEvent() {
+            let event = {};
+            switch(currentEventType) {
+                case 'type_and_send':
+                    event = { type: 'type_and_send_message', actor: 'A' };
+                    if (document.getElementById('customDelay').checked) event.delay = parseInt(document.getElementById('delay').value);
+                    if (document.getElementById('messageType').value === 'image') {
+                        event.message = { contentType: 'image', url: document.getElementById('imageUrl').value };
+                        const caption = document.getElementById('imageCaption').value;
+                        if (caption) event.message.caption = caption;
+                    } else {
+                        event.message = { contentType: 'text', content: document.getElementById('messageContent').value };
+                        if (document.getElementById('customTypingSpeed').checked) event.typingSpeed = parseInt(document.getElementById('typingSpeed').value);
+                    }
+                    break;
+                case 'type':
+                    event = { type: 'type', actor: 'A', text: document.getElementById('text').value };
+                    if (document.getElementById('customTypingSpeed').checked) event.typingSpeed = parseInt(document.getElementById('typingSpeed').value);
+                    break;
+                case 'pause':
+                    event = { type: 'pause', actor: 'A', duration: parseInt(document.getElementById('duration').value) };
+                    break;
+                case 'delete':
+                    event = { type: 'delete', actor: 'A', charCount: parseInt(document.getElementById('charCount').value) };
+                    if (document.getElementById('customDeleteSpeed').checked) event.deleteSpeed = parseInt(document.getElementById('deleteSpeed').value);
+                    break;
+                case 'send':
+                    event = { type: 'send_message', actor: 'A' };
+                    if (document.getElementById('messageType').value === 'image') {
+                        event.message = { contentType: 'image', url: document.getElementById('imageUrl').value };
+                        const caption = document.getElementById('imageCaption').value;
+if (caption) event.message.caption = caption;
+                    } else {
+                        event.message = { contentType: 'text', content: document.getElementById('messageContent').value };
+                    }
+                    break;
+                case 'receive':
+                    event = { type: 'receive_message', actor: 'B' };
+                    if (document.getElementById('customDelay').checked) event.delay = parseInt(document.getElementById('delay').value);
+                    if (document.getElementById('messageType').value === 'image') {
+                        event.message = { contentType: 'image', url: document.getElementById('imageUrl').value };
+                        const caption = document.getElementById('imageCaption').value;
+                        if (caption) event.message.caption = caption;
+                    } else {
+                        event.message = { contentType: 'text', content: document.getElementById('messageContent').value };
+                    }
+                    break;
+            }
+
+            if (editingIndex >= 0) {
+                events[editingIndex] = event;
+            } else {
+                events.push(event);
+            }
+            
+            closeModal();
+            updatePreview();
+        }
+
+        function deleteEvent(index) {
+            if (confirm('Are you sure you want to delete this event?')) {
+                events.splice(index, 1);
+                updatePreview();
+            }
+        }
+
+        function moveEvent(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex >= 0 && newIndex < events.length) {
+                const temp = events[index];
+                events[index] = events[newIndex];
+                events[newIndex] = temp;
+                updatePreview();
+            }
+        }
+
+        function closeModal() { document.getElementById('eventModal').classList.remove('active'); }
+
+        function downloadJSON() {
+            const conversation = {
+                metadata: { version: "1.0", participants: { A: { name: document.getElementById('nameA').value || 'Person A' }, B: { name: document.getElementById('nameB').value || 'Person B' } } },
+                config: { defaultTypingSpeed: parseInt(document.getElementById('defaultTypingSpeed').value) || 80, defaultDeleteSpeed: parseInt(document.getElementById('defaultDeleteSpeed').value) || 50, defaultMessageDelay: parseInt(document.getElementById('defaultMessageDelay').value) || 1500 },
+                conversation: events
+            };
+            const dataStr = JSON.stringify(conversation, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', 'conversation.json');
+            linkElement.click();
+        }
+
+        updatePreview();
+    </script>
+</body>
+</html>
