@@ -61,394 +61,407 @@
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
         .control-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         #fileInput { display: none; }
-        
-        .recording-info {
-            background: white;
-            padding: 10px 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            font-size: 13px;
-            color: #666;
-            text-align: center;
-            line-height: 1.4;
-        }
-        
-        .recording-info.active {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffc107;
-        }
+        .recording-info { background: white; padding: 10px 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-size: 13px; color: #666; text-align: center; line-height: 1.4; }
+        .recording-info.active { background: #fff3cd; color: #856404; border: 1px solid #ffc107; }
+        .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #48bb78; color: white; padding: 12px 24px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 2000; opacity: 0; transition: opacity 0.5s ease-in-out, top 0.5s ease-in-out; pointer-events: none; }
+        .toast-notification.show { opacity: 1; top: 40px; }
     </style>
 </head>
 <body>
+    <div id="toast" class="toast-notification"></div>
     <div class="iphone-container" id="phoneContainer">
         <div class="iphone-screen">
             <div class="status-bar">
                 <div class="status-left">
                     <div class="signal-bars"><div class="signal-bar"></div><div class="signal-bar"></div><div class="signal-bar"></div><div class="signal-bar"></div></div>
-                    <span class="carrier">AT&T</span>
+                    <span class="carrier" id="carrierName">Carrier</span>
                 </div>
                 <div class="status-right">
-                    <span>100%</span>
-                    <div class="battery"><div class="battery-fill"></div></div>
+                    <span id="batteryPercentage">100%</span>
+                    <div class="battery"><div class="battery-fill" id="batteryFill"></div></div>
                 </div>
             </div>
-            <div class="nav-header">
-                <a href="#" class="nav-left">Back</a>
-                <div class="nav-center" id="recipientName">Contact</div>
-                <a href="#" class="nav-right">Details</a>
-            </div>
+            <div class="nav-header"><a href="index.html" class="nav-left">Back</a><div class="nav-center" id="recipientName">Contact</div><a href="#" class="nav-right">Details</a></div>
             <div class="chat-area" id="chatArea"></div>
-            <div class="input-area">
-                <div class="input-field" id="inputField"></div>
-                <button class="send-button">➤</button>
-            </div>
+            <div class="input-area"><div class="input-field" id="inputField"></div><button class="send-button">➤</button></div>
             <div class="keyboard">
-                <div class="keyboard-row">
-                    <button class="key" data-key="q">q</button><button class="key" data-key="w">w</button><button class="key" data-key="e">e</button><button class="key" data-key="r">r</button><button class="key" data-key="t">t</button><button class="key" data-key="y">y</button><button class="key" data-key="u">u</button><button class="key" data-key="i">i</button><button class="key" data-key="o">o</button><button class="key" data-key="p">p</button>
-                </div>
-                <div class="keyboard-row">
-                    <button class="key" data-key="a">a</button><button class="key" data-key="s">s</button><button class="key" data-key="d">d</button><button class="key" data-key="f">f</button><button class="key" data-key="g">g</button><button class="key" data-key="h">h</button><button class="key" data-key="j">j</button><button class="key" data-key="k">k</button><button class="key" data-key="l">l</button>
-                </div>
-                <div class="keyboard-row">
-                    <button class="key special" data-key="shift">⇧</button><button class="key" data-key="z">z</button><button class="key" data-key="x">x</button><button class="key" data-key="c">c</button><button class="key" data-key="v">v</button><button class="key" data-key="b">b</button><button class="key" data-key="n">n</button><button class="key" data-key="m">m</button><button class="key special" data-key="backspace">⌫</button>
-                </div>
-                <div class="keyboard-row">
-                    <button class="key special" data-key="123">123</button><button class="key special" data-key="emoji">😊</button><button class="key space" data-key=" ">space</button><button class="key special return" data-key="return">return</button>
-                </div>
+                <div class="keyboard-row"><button class="key" data-key="q">q</button><button class="key" data-key="w">w</button><button class="key" data-key="e">e</button><button class="key" data-key="r">r</button><button class="key" data-key="t">t</button><button class="key" data-key="y">y</button><button class="key" data-key="u">u</button><button class="key" data-key="i">i</button><button class="key" data-key="o">o</button><button class="key" data-key="p">p</button></div>
+                <div class="keyboard-row"><button class="key" data-key="a">a</button><button class="key" data-key="s">s</button><button class="key" data-key="d">d</button><button class="key" data-key="f">f</button><button class="key" data-key="g">g</button><button class="key" data-key="h">h</button><button class="key" data-key="j">j</button><button class="key" data-key="k">k</button><button class="key" data-key="l">l</button></div>
+                <div class="keyboard-row"><button class="key special" data-key="shift">⇧</button><button class="key" data-key="z">z</button><button class="key" data-key="x">x</button><button class="key" data-key="c">c</button><button class="key" data-key="v">v</button><button class="key" data-key="b">b</button><button class="key" data-key="n">n</button><button class="key" data-key="m">m</button><button class="key special" data-key="backspace">⌫</button></div>
+                <div class="keyboard-row"><button class="key special" data-key="123">123</button><button class="key special" data-key="emoji">😊</button><button class="key space" data-key=" ">space</button><button class="key special return" data-key="return">return</button></div>
             </div>
         </div>
     </div>
-
     <div class="controls">
         <div class="control-row">
-            <button class="control-btn" id="startBtn" onclick="startPlayback()">Start</button>
-            <button class="control-btn" onclick="resetPlayback()">Reset</button>
-            <input type="file" id="fileInput" accept=".json">
-            <button class="control-btn" onclick="document.getElementById('fileInput').click()">Load JSON</button>
+            <button class="control-btn" id="startBtn" onclick="startPlayback()">▶️ Start Conversation</button>
+            <button class="control-btn" onclick="resetPlayback()">🔄 Reset</button>
+            <button class="control-btn" id="recordBtn" onclick="toggleRecording()">🔴 Start Recording</button>
         </div>
         <div class="control-row">
-            <button class="control-btn" id="recordBtn" onclick="toggleRecording()">🔴 Start Recording</button>
-            <a href="chat_builder.html">
-                <button class="control-btn">📱 JSON Builder</button>
-            </a>
+            <button class="control-btn" onclick="navigateToBuilder()">📱 JSON Builder</button>
+            <button class="control-btn" onclick="document.getElementById('fileInput').click()">📂 Load JSON</button>
+            <a href="index.html"><button class="control-btn">🏠 Home</button></a>
+            <a href="https://github.com/Biohazardry69/phoneChatPlayer" target="_blank"><button class="control-btn">🌐 GitHub</button></a>
         </div>
-        <div class="recording-info" id="recordingInfo">
-            Click "Start Recording", then select this browser tab to record
-        </div>
+        <input type="file" id="fileInput" accept=".json" style="display: none;">
+        <div class="recording-info" id="recordingInfo">Click "Start Recording", then select this browser tab to record</div>
     </div>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
     <script>
-        let conversationData = null;
-        let currentEventIndex = 0;
-        let currentText = '';
-        let isPlaying = false;
-        
-        // Recording variables
-        let mediaRecorder = null;
-        let recordedChunks = [];
-        let isRecording = false;
-        let displayStream = null;
+        let conversationData = null, currentEventIndex = 0, currentText = '', isPlaying = false;
+        let mediaRecorder = null, recordedChunks = [], isRecording = false, displayStream = null;
 
         const sampleData = {
-            "metadata": { "version": "1.0", "participants": { "A": { "name": "Alex" }, "B": { "name": "Ben" } } },
-            "config": { "defaultTypingSpeed": 80, "defaultDeleteSpeed": 40, "defaultMessageDelay": 1200 },
+            "metadata": {
+                "version": "1.0",
+                "participants": {
+                    "A": { "name": "Sarah" },
+                    "B": { "name": "Mike" }
+                }
+            },
+            "config": {
+                "defaultTypingSpeed": 60,
+                "defaultDeleteSpeed": 40,
+                "defaultMessageDelay": 1500,
+                "carrier": "AT&T",
+                "batteryPercentage": 87
+            },
             "conversation": [
-                { "type": "type_and_send_message", "actor": "A", "message": { "contentType": "text", "content": "Hey, what are you up to tonight?" } },
-                { "type": "receive_message", "actor": "B", "delay": 1500, "message": { "contentType": "text", "content": "Not much, was about to watch a movie. You?" } },
-                { "type": "type", "actor": "A", "text": "Cool! Want to hang out?" },
-                { "type": "pause", "actor": "A", "duration": 500 },
-                { "type": "delete", "actor": "A", "charCount": 17 },
-                { "type": "type", "actor": "A", "text": "Check this out." },
-                { "type": "send_message", "actor": "A", "message": {"contentType": "text", "content": "Cool! Check this out."} },
-                { "type": "send_message", "actor": "A", "message": { "contentType": "image", "url": "exampleImg.png", "caption": "There is a magic show. Wanna go?" } },
-                { "type": "receive_message", "actor": "B", "message": { "contentType": "text", "content": "Whoa, that looks awesome! I'm in!" } }
+                {
+                    "type": "type_and_send_message",
+                    "actor": "A",
+                    "message": { "contentType": "text", "content": "Hey! Check out this website!" }
+                },
+                {
+                    "type": "receive_message",
+                    "actor": "B",
+                    "delay": 1200,
+                    "message": { "contentType": "text", "content": "Cool. What can it do?" }
+                },
+                {
+                    "type": "type",
+                    "actor": "A",
+                    "text": "You can type life"
+                },
+                {
+                    "type": "pause",
+                    "actor": "A",
+                    "duration": 600
+                },
+                {
+                    "type": "delete",
+                    "actor": "A",
+                    "charCount": 4
+                },
+                {
+                    "type": "type",
+                    "actor": "A",
+                    "text": "live conversations."
+                },
+                {
+                    "type": "send_typed",
+                    "actor": "A"
+                },
+                {
+                    "type": "receive_message",
+                    "actor": "B",
+                    "delay": 2000,
+                    "message": {
+                        "contentType": "image",
+                        "url": "exampleImg.png",
+                        "caption": "Wow, I can even send pictures!"
+                    }
+                },
+                {
+                    "type": "receive_message",
+                    "actor": "B",
+                    "delay": 1000,
+                    "message": { "contentType": "text", "content": "How can I use it?" }
+                },
+                {
+                    "type": "type_and_send_message",
+                    "actor": "A",
+                    "message": { "contentType": "text", "content": "Click the JSON Builder button at the bottom to get started!" }
+                }
             ]
         };
-
-        conversationData = sampleData;
-        updateRecipientName();
-
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        conversationData = JSON.parse(e.target.result);
-                        updateRecipientName();
-                        resetPlayback();
-                    } catch (error) { alert('Invalid JSON file'); }
-                };
-                reader.readAsText(file);
+        
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const dataParam = urlParams.get('data');
+            if (dataParam) {
+                try {
+                    const binaryString = atob(decodeURIComponent(dataParam));
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    const decompressedData = pako.inflate(bytes, { to: 'string' });
+                    const jsonData = JSON.parse(decompressedData);
+                    conversationData = jsonData;
+                    showToast('Conversation loaded from URL!');
+                } catch (error) {
+                    console.error("Failed to load data from URL:", error);
+                    showToast('Error loading data from URL.', true);
+                    conversationData = sampleData;
+                }
+            } else {
+                conversationData = sampleData;
             }
+            updateUI();
+            resetPlayback();
+        };
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.backgroundColor = isError ? '#f56565' : '#48bb78';
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+        
+        function navigateToBuilder() {
+            if (!conversationData) { window.location.href = 'chat_builder.html'; return; }
+            try {
+                const jsonString = JSON.stringify(conversationData);
+                const compressed = pako.deflate(jsonString);
+                const binaryString = String.fromCharCode.apply(null, compressed);
+                const encodedData = btoa(binaryString);
+                window.location.href = `chat_builder.html?data=${encodeURIComponent(encodedData)}`;
+            } catch (error) { console.error("Failed to encode data for URL:", error); alert("Could not prepare data for the builder."); }
+        }
+
+        document.getElementById('fileInput').addEventListener('change', (e) => { 
+            const file = e.target.files[0]; 
+            if (file) { 
+                const reader = new FileReader(); 
+                reader.onload = (e) => { 
+                    try { 
+                        conversationData = JSON.parse(e.target.result); 
+                        updateUI(); 
+                        resetPlayback(); 
+                    } catch (err) { 
+                        alert('Invalid JSON file'); 
+                    } 
+                }; 
+                reader.readAsText(file); 
+            } 
         });
 
-        function updateRecipientName() {
+        function updateUI() {
             if (conversationData?.metadata?.participants?.B) {
                 document.getElementById('recipientName').textContent = conversationData.metadata.participants.B.name || 'Contact';
             }
-        }
-
-        function highlightKey(char) {
-            const key = document.querySelector(`.key[data-key="${char.toLowerCase()}"]`);
-            if (key) {
-                key.classList.add('active');
-                setTimeout(() => key.classList.remove('active'), 100);
-            }
-        }
-
-        async function typeText(text, speed) {
-            for (let i = 0; i < text.length; i++) {
-                if (!isPlaying) return;
-                currentText += text[i];
-                document.getElementById('inputField').textContent = currentText;
-                highlightKey(text[i]);
-                await sleep(speed);
-            }
-        }
-
-        async function deleteText(charCount, speed) {
-            for (let i = 0; i < charCount; i++) {
-                if (!isPlaying) return;
-                currentText = currentText.slice(0, -1);
-                document.getElementById('inputField').textContent = currentText;
-                highlightKey('backspace');
-                await sleep(speed);
-            }
-        }
-
-        function createMessageElement(message, senderType) {
-            const chatArea = document.getElementById('chatArea');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${senderType}`;
-            const bubbleDiv = document.createElement('div');
-            bubbleDiv.className = 'message-bubble';
-
-            if (message.contentType === 'text') {
-                bubbleDiv.textContent = message.content;
-            } else if (message.contentType === 'image') {
-                bubbleDiv.classList.add('image-bubble');
-                const img = document.createElement('img');
-                img.src = message.url;
-                img.alt = 'Image';
-                img.onload = () => { chatArea.scrollTop = chatArea.scrollHeight; };
-                bubbleDiv.appendChild(img);
-                if (message.caption) {
-                    const captionDiv = document.createElement('div');
-                    captionDiv.className = 'caption-text';
-                    captionDiv.textContent = message.caption;
-                    bubbleDiv.appendChild(captionDiv);
-                }
-            }
             
-            messageDiv.appendChild(bubbleDiv);
-            chatArea.appendChild(messageDiv);
-            chatArea.scrollTop = chatArea.scrollHeight;
-        }
-
-        function sendMessage(message) {
-            createMessageElement(message, 'sent');
-            currentText = '';
-            document.getElementById('inputField').textContent = '';
-        }
-
-        function receiveMessage(message) {
-            createMessageElement(message, 'received');
-        }
-
-        async function processEvent(event) {
-            const config = conversationData.config;
-            
-            switch(event.type) {
-                case 'type_and_send_message':
-                    if (event.delay) await sleep(event.delay);
-                    if (event.message.contentType === 'text') {
-                        const typeSpeed = event.typingSpeed || config.defaultTypingSpeed;
-                        await typeText(event.message.content, typeSpeed);
-                    }
-                    sendMessage(event.message);
-                    await sleep(300);
-                    break;
-                case 'type':
-                    await typeText(event.text, event.typingSpeed || config.defaultTypingSpeed);
-                    break;
-                case 'pause':
-                    await sleep(event.duration);
-                    break;
-                case 'delete':
-                    await deleteText(event.charCount, event.deleteSpeed || config.defaultDeleteSpeed);
-                    break;
-                case 'send_message':
-                    sendMessage(event.message);
-                    await sleep(300);
-                    break;
-                case 'receive_message':
-                    const delay = event.delay ?? config.defaultMessageDelay ?? 1000;
-                    await sleep(delay);
-                    receiveMessage(event.message);
-                    break;
-            }
-        }
-
-        async function startPlayback() {
-            if (!conversationData || isPlaying) return;
-            isPlaying = true;
-            document.getElementById('startBtn').disabled = true;
-            
-            const events = conversationData.conversation;
-            while (currentEventIndex < events.length && isPlaying) {
-                await processEvent(events[currentEventIndex]);
-                currentEventIndex++;
-            }
-            
-            isPlaying = false;
-            document.getElementById('startBtn').disabled = false;
-            
-            // Auto-stop recording when playback finishes
-            if (isRecording) {
-                setTimeout(() => {
-                    stopRecording();
-                }, 500);
-            }
-        }
-
-        function resetPlayback() {
-            isPlaying = false;
-            currentEventIndex = 0;
-            currentText = '';
-            document.getElementById('inputField').textContent = '';
-            document.getElementById('chatArea').innerHTML = '';
-            document.getElementById('startBtn').disabled = false;
-        }
-
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        // ============== RECORDING FUNCTIONS ==============
-
-        async function toggleRecording() {
-            if (isRecording) {
-                stopRecording();
+            // Update carrier name
+            if (conversationData?.config?.carrier) {
+                document.getElementById('carrierName').textContent = conversationData.config.carrier;
             } else {
-                await startRecording();
+                document.getElementById('carrierName').textContent = 'Carrier';
+            }
+            
+            // Update battery percentage
+            if (conversationData?.config?.batteryPercentage !== undefined) {
+                const percentage = conversationData.config.batteryPercentage;
+                document.getElementById('batteryPercentage').textContent = percentage + '%';
+                document.getElementById('batteryFill').style.width = percentage + '%';
+            } else {
+                document.getElementById('batteryPercentage').textContent = '100%';
+                document.getElementById('batteryFill').style.width = '100%';
             }
         }
 
-        async function startRecording() {
-            try {
-                // Request screen capture
-                displayStream = await navigator.mediaDevices.getDisplayMedia({
-                    video: {
-                        cursor: "never",
-                        displaySurface: "browser"
-                    },
-                    audio: false,
-                    preferCurrentTab: true
-                });
-                
-                const videoTrack = displayStream.getVideoTracks()[0];
-                
-                // Handle when user stops sharing via browser UI
-                videoTrack.onended = () => {
-                    stopRecording();
-                };
-                
-                recordedChunks = [];
-                
-                const options = {
-                    mimeType: 'video/webm;codecs=vp9',
-                    videoBitsPerSecond: 5000000
-                };
-                
-                // Fallback for browsers that don't support vp9
-                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                    options.mimeType = 'video/webm;codecs=vp8';
-                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                        options.mimeType = 'video/webm';
-                    }
-                }
-                
-                mediaRecorder = new MediaRecorder(displayStream, options);
-                
-                mediaRecorder.ondataavailable = function(event) {
-                    if (event.data.size > 0) {
-                        recordedChunks.push(event.data);
-                    }
-                };
-                
-                mediaRecorder.onstop = function() {
-                    downloadRecording();
-                };
-                
-                mediaRecorder.start(100);
-                
-                isRecording = true;
-                document.getElementById('recordBtn').classList.add('recording');
-                document.getElementById('recordBtn').textContent = '⏹️ Stop Recording';
-                document.getElementById('recordingInfo').textContent = '🔴 Recording in progress...';
-                document.getElementById('recordingInfo').classList.add('active');
-                
-                console.log('Recording started');
-                
-            } catch (error) {
-                console.error('Error starting recording:', error);
-                
-                if (error.name === 'NotAllowedError') {
-                    alert('Screen recording permission was denied. Please allow screen sharing to record.');
-                } else {
-                    alert('Failed to start recording: ' + error.message + '\n\nMake sure you select the browser tab when prompted.');
-                }
-                
-                isRecording = false;
-                document.getElementById('recordBtn').classList.remove('recording');
-                document.getElementById('recordBtn').textContent = '🔴 Start Recording';
-            }
+        function highlightKey(char) { 
+            const key = document.querySelector(`.key[data-key="${char.toLowerCase()}"]`); 
+            if (key) { 
+                key.classList.add('active'); 
+                setTimeout(() => key.classList.remove('active'), 100); 
+            } 
         }
 
-        function stopRecording() {
-            isRecording = false;
-            
-            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                mediaRecorder.stop();
-            }
-            
-            if (displayStream) {
-                displayStream.getTracks().forEach(track => track.stop());
-                displayStream = null;
-            }
-            
-            document.getElementById('recordBtn').classList.remove('recording');
-            document.getElementById('recordBtn').textContent = '🔴 Start Recording';
-            document.getElementById('recordingInfo').textContent = 'Click "Start Recording", then select this browser tab to record';
-            document.getElementById('recordingInfo').classList.remove('active');
-            
-            console.log('Recording stopped');
+        async function typeText(text, speed) { 
+            for (let i = 0; i < text.length; i++) { 
+                if (!isPlaying) return; 
+                currentText += text[i]; 
+                document.getElementById('inputField').textContent = currentText; 
+                highlightKey(text[i]); 
+                await sleep(speed); 
+            } 
         }
 
-        function downloadRecording() {
-            if (recordedChunks.length === 0) {
-                alert('No recording data available');
-                return;
-            }
-            
-            const blob = new Blob(recordedChunks, { type: 'video/webm' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = `conversation_${Date.now()}.webm`;
-            document.body.appendChild(a);
-            a.click();
-            
-            setTimeout(() => {
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }, 100);
-            
-            recordedChunks = [];
-            console.log('Recording downloaded');
+        async function deleteText(charCount, speed) { 
+            for (let i = 0; i < charCount; i++) { 
+                if (!isPlaying) return; 
+                currentText = currentText.slice(0, -1); 
+                document.getElementById('inputField').textContent = currentText; 
+                highlightKey('backspace'); 
+                await sleep(speed); 
+            } 
+        }
+
+        function createMessageElement(message, senderType) { 
+            const chatArea = document.getElementById('chatArea'), messageDiv = document.createElement('div'); 
+            messageDiv.className = `message ${senderType}`; 
+            const bubbleDiv = document.createElement('div'); 
+            bubbleDiv.className = 'message-bubble'; 
+            if (message.contentType === 'text') { 
+                bubbleDiv.textContent = message.content; 
+            } else if (message.contentType === 'image') { 
+                bubbleDiv.classList.add('image-bubble'); 
+                const img = document.createElement('img'); 
+                img.src = message.url; 
+                img.alt = 'Image'; 
+                img.onload = () => { chatArea.scrollTop = chatArea.scrollHeight; }; 
+                bubbleDiv.appendChild(img); 
+                if (message.caption) { 
+                    const captionDiv = document.createElement('div'); 
+                    captionDiv.className = 'caption-text'; 
+                    captionDiv.textContent = message.caption; 
+                    bubbleDiv.appendChild(captionDiv); 
+                } 
+            } 
+            messageDiv.appendChild(bubbleDiv); 
+            chatArea.appendChild(messageDiv); 
+            chatArea.scrollTop = chatArea.scrollHeight; 
+        }
+
+        function sendMessage(message) { createMessageElement(message, 'sent'); currentText = ''; document.getElementById('inputField').textContent = ''; }
+        function receiveMessage(message) { createMessageElement(message, 'received'); }
+
+        async function processEvent(event) { 
+            const config = conversationData.config; 
+            switch (event.type) { 
+                case 'type_and_send_message': 
+                    if (event.delay) await sleep(event.delay); 
+                    if (event.message.contentType === 'text') { 
+                        await typeText(event.message.content, event.typingSpeed || config.defaultTypingSpeed); 
+                    } 
+                    sendMessage(event.message); 
+                    await sleep(300); 
+                    break; 
+                case 'type': 
+                    await typeText(event.text, event.typingSpeed || config.defaultTypingSpeed); 
+                    break; 
+                case 'pause': 
+                    await sleep(event.duration); 
+                    break; 
+                case 'delete': 
+                    await deleteText(event.charCount, event.deleteSpeed || config.defaultDeleteSpeed); 
+                    break; 
+                case 'send_message': 
+                    sendMessage(event.message); 
+                    await sleep(300); 
+                    break; 
+                case 'send_typed': 
+                    const messageToSend = { contentType: 'text', content: currentText }; 
+                    sendMessage(messageToSend); 
+                    await sleep(300); 
+                    break; 
+                case 'receive_message': 
+                    await sleep(event.delay ?? config.defaultMessageDelay ?? 1000); 
+                    receiveMessage(event.message); 
+                    break; 
+            } 
+        }
+
+        async function startPlayback() { 
+            if (!conversationData || isPlaying) return; 
+            isPlaying = true; 
+            document.getElementById('startBtn').disabled = true; 
+            const events = conversationData.conversation; 
+            while (currentEventIndex < events.length && isPlaying) { 
+                await processEvent(events[currentEventIndex]); 
+                currentEventIndex++; 
+            } 
+            isPlaying = false; 
+            document.getElementById('startBtn').disabled = false; 
+            if (isRecording) { 
+                setTimeout(() => stopRecording(), 500); 
+            } 
+        }
+
+        function resetPlayback() { 
+            isPlaying = false; 
+            currentEventIndex = 0; 
+            currentText = ''; 
+            document.getElementById('inputField').textContent = ''; 
+            document.getElementById('chatArea').innerHTML = ''; 
+            document.getElementById('startBtn').disabled = false; 
+        }
+
+        function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+        async function toggleRecording() { if (isRecording) stopRecording(); else await startRecording(); }
+
+        async function startRecording() { 
+            try { 
+                displayStream = await navigator.mediaDevices.getDisplayMedia({ 
+                    video: { cursor: "never", displaySurface: "browser" }, 
+                    audio: false, 
+                    preferCurrentTab: true 
+                }); 
+                const videoTrack = displayStream.getVideoTracks()[0]; 
+                videoTrack.onended = () => stopRecording(); 
+                recordedChunks = []; 
+                const options = { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 5000000 }; 
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) { 
+                    options.mimeType = 'video/webm;codecs=vp8'; 
+                    if (!MediaRecorder.isTypeSupported(options.mimeType)) { 
+                        options.mimeType = 'video/webm'; 
+                    } 
+                } 
+                mediaRecorder = new MediaRecorder(displayStream, options); 
+                mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); }; 
+                mediaRecorder.onstop = () => downloadRecording(); 
+                mediaRecorder.start(100); 
+                isRecording = true; 
+                document.getElementById('recordBtn').classList.add('recording'); 
+                document.getElementById('recordBtn').textContent = '⏹️ Stop Recording'; 
+                document.getElementById('recordingInfo').textContent = '🔴 Recording in progress...'; 
+                document.getElementById('recordingInfo').classList.add('active'); 
+                console.log('Recording started'); 
+            } catch (err) { 
+                console.error('Error starting recording:', err); 
+                if (err.name === 'NotAllowedError') alert('Screen recording permission was denied.'); 
+                else alert('Failed to start recording: ' + err.message); 
+                isRecording = false; 
+                document.getElementById('recordBtn').classList.remove('recording'); 
+                document.getElementById('recordBtn').textContent = '🔴 Start Recording'; 
+            } 
+        }
+
+        function stopRecording() { 
+            isRecording = false; 
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop(); 
+            if (displayStream) displayStream.getTracks().forEach(track => track.stop()); 
+            displayStream = null; 
+            document.getElementById('recordBtn').classList.remove('recording'); 
+            document.getElementById('recordBtn').textContent = '🔴 Start Recording'; 
+            document.getElementById('recordingInfo').textContent = 'Click "Start Recording", then select this browser tab to record'; 
+            document.getElementById('recordingInfo').classList.remove('active'); 
+            console.log('Recording stopped'); 
+        }
+
+        function downloadRecording() { 
+            if (recordedChunks.length === 0) { 
+                alert('No recording data available'); 
+                return; 
+            } 
+            const blob = new Blob(recordedChunks, { type: 'video/webm' }); 
+            const url = URL.createObjectURL(blob); 
+            const a = document.createElement('a'); 
+            a.style.display = 'none'; 
+            a.href = url; 
+            a.download = `conversation_${Date.now()}.webm`; 
+            document.body.appendChild(a); 
+            a.click(); 
+            setTimeout(() => { 
+                document.body.removeChild(a); 
+                URL.revokeObjectURL(url); 
+            }, 100); 
+            recordedChunks = []; 
+            console.log('Recording downloaded'); 
         }
     </script>
 </body>
